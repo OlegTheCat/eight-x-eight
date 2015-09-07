@@ -2,4 +2,6 @@ module Main(main) where
 
 import Game
 
-main = print "hi"
+main = do
+  game <- createGame
+  print game
