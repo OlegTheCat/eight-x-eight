@@ -1,7 +1,28 @@
 module Main(main) where
 
+import Data.Char (ord)
 import Game
+import Input
+import InputProcessor
+import Render
+import System.Console.ANSI (clearScreen)
+import System.IO
 
-main = do
-  game <- createGame
-  print game
+gameLoop :: Game -> IO ()
+gameLoop g =
+  do
+    renderGame g
+    cmd <- getInputCommand
+    gameLoop $ processCommand cmd g
+
+main =
+  do
+    hSetBuffering stdin NoBuffering
+    hSetEcho stdout False
+    g <- createGame
+    gameLoop g
+    -- renderGame pureGame
+    -- putStrLn "========================="
+    -- print $ show pureGame
+    -- g <- createGame
+    -- renderGame g
