@@ -67,8 +67,21 @@ moveCursor Right (x, y) = (checkWidth x 1, y)
 moveCursor Up (x, y) = (x, checkHeight y (negate 1))
 moveCursor Down (x, y) = (x, checkHeight y 1)
 
+moveCursorForPlayer :: Player -> CursorMove -> Coords -> Coords
+moveCursorForPlayer Player1 Up    = moveCursor Up
+moveCursorForPlayer Player1 Down  = moveCursor Down
+moveCursorForPlayer Player1 _     = id
+moveCursorForPlayer Player2 Left  = moveCursor Left
+moveCursorForPlayer Player2 Right = moveCursor Right
+moveCursorForPlayer Player2 _     = id
+
 moveCursorInGame :: Game -> CursorMove -> Game
-moveCursorInGame game move = game { cursorPosition = moveCursor move (cursorPosition game) }
+moveCursorInGame game move = game { cursorPosition = moveCursorForPlayer
+                                                     (currentPlayer game)
+                                                     move
+                                                     (cursorPosition game) }
+
+
 
 purePopulateBoard :: GameBoard
 purePopulateBoard =
