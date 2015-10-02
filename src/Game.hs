@@ -92,7 +92,7 @@ incCurrentPlayerScore g =
 
 incPlayerScore :: Game -> Player -> Int  -> Game
 incPlayerScore g Player1 x = g { player1Score = (player1Score g) + x }
-incPlayerScore g Player2 x = g { player1Score = (player2Score g) + x }
+incPlayerScore g Player2 x = g { player2Score = (player2Score g) + x }
 
 getCellAtCursorPosition :: Game -> Cell
 getCellAtCursorPosition g = getCell (board g) (cursorPosition g)
