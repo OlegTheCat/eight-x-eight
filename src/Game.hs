@@ -31,15 +31,15 @@ data Game = Game { board :: GameBoard
 getCell :: GameBoard -> Coords -> Cell
 getCell board (x, y) = board Matrix.! (y + 1, x + 1)
 
+setCell :: GameBoard -> Coords -> Cell -> GameBoard
+setCell board (x, y) cell = Matrix.setElem cell (y + 1, x + 1) board
+
+setNoneCell :: GameBoard -> Coords -> GameBoard
+setNoneCell board coords = setCell board coords None
+
 boardCoordsRange :: GameBoard -> [Coords]
 boardCoordsRange m =
-  concatMap
-  (\x ->
-    map
-    ((,) x)
-    (range (0, Matrix.nrows m - 1)))
-  (range (0, Matrix.ncols m - 1))
-
+  [(x, y) | x <- [0 .. Matrix.ncols m - 1], y <- [0 .. Matrix.nrows m - 1]]
 
 initialGame :: GameBoard -> Game
 initialGame board =
@@ -62,10 +62,10 @@ checkHeight :: Int -> Int -> Int
 checkHeight x dx = checkRange x dx 0 boardHeight
 
 moveCursor :: CursorMove -> Coords -> Coords
-moveCursor Left (x, y) = (checkWidth x (negate 1), y)
+moveCursor Left  (x, y) = (checkWidth x (negate 1), y)
 moveCursor Right (x, y) = (checkWidth x 1, y)
-moveCursor Up (x, y) = (x, checkHeight y (negate 1))
-moveCursor Down (x, y) = (x, checkHeight y 1)
+moveCursor Up    (x, y) = (x, checkHeight y (negate 1))
+moveCursor Down  (x, y) = (x, checkHeight y 1)
 
 moveCursorForPlayer :: Player -> CursorMove -> Coords -> Coords
 moveCursorForPlayer Player1 Up    = moveCursor Up
@@ -81,6 +81,33 @@ moveCursorInGame game move = game { cursorPosition = moveCursorForPlayer
                                                      move
                                                      (cursorPosition game) }
 
+switchPlayer :: Game -> Game
+switchPlayer g = doSwitch $ currentPlayer g
+  where doSwitch Player1 = g { currentPlayer = Player2 }
+        doSwitch Player2 = g { currentPlayer = Player1 }
+
+incCurrentPlayerScore :: Game -> Int -> Game
+incCurrentPlayerScore g =
+  incPlayerScore g (currentPlayer g)
+
+incPlayerScore :: Game -> Player -> Int  -> Game
+incPlayerScore g Player1 x = g { player1Score = (player1Score g) + x }
+incPlayerScore g Player2 x = g { player1Score = (player2Score g) + x }
+
+getCellAtCursorPosition :: Game -> Cell
+getCellAtCursorPosition g = getCell (board g) (cursorPosition g)
+
+setCellAtCursorPosition :: Game -> Cell -> Game
+setCellAtCursorPosition g c = g { board = setCell (board g) (cursorPosition g) c }
+
+setNoneCellAtCursorPosition :: Game -> Game
+setNoneCellAtCursorPosition g = setCellAtCursorPosition g None
+
+takeCellValue :: Game -> Game
+takeCellValue g  =
+  case getCellAtCursorPosition g of
+   Cell x -> (switchPlayer . (\g -> incCurrentPlayerScore g x) . setNoneCellAtCursorPosition) g
+   None -> g
 
 
 purePopulateBoard :: GameBoard
