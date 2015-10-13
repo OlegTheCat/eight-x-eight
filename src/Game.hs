@@ -1,11 +1,11 @@
 module Game where
 
+import           Data.Ix (range)
 import qualified Data.Matrix as Matrix
 import qualified Data.Traversable as Traversable
-import           Prelude hiding (Left, Right)
+import           Data.Vector (any)
+import           Prelude hiding (Left, Right, any)
 import qualified System.Random as Random
-import Data.Ix (range)
-
 
 boardWidth = 8
 boardHeight = 8
@@ -16,6 +16,11 @@ cellMaxValue = 8
 data Player = Player1 | Player2 deriving (Eq, Show)
 
 data Cell = Cell Int | None deriving (Eq, Show)
+
+isNoneCell :: Cell -> Bool
+isNoneCell None = True
+isNoneCell _    = False
+
 type GameBoard = Matrix.Matrix Cell
 
 type Coords = (Int, Int)
@@ -108,6 +113,20 @@ takeCellValue g  =
   case getCellAtCursorPosition g of
    Cell x -> (switchPlayer . (\g -> incCurrentPlayerScore g x) . setNoneCellAtCursorPosition) g
    None -> g
+
+isGameFinished :: Game -> Bool
+isGameFinished g = not $ playerHasAvailableMoves (currentPlayer g) g
+  where
+    playerHasAvailableMoves Player1 g =
+      hasNonEmptyCells $ getCurrentCol g
+    playerHasAvailableMoves Player2 g =
+      hasNonEmptyCells $ getCurrentRow g
+    hasNonEmptyCells v =
+      any (not . isNoneCell) v
+    getCurrentRow g =
+      Matrix.getRow (succ $ snd $ cursorPosition g) (board g)
+    getCurrentCol g =
+      Matrix.getCol (succ $ fst $ cursorPosition g) (board g)
 
 
 purePopulateBoard :: GameBoard

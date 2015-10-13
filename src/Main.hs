@@ -12,8 +12,11 @@ gameLoop :: Game -> IO ()
 gameLoop g =
   do
     renderGame g
-    cmd <- getInputCommand
-    gameLoop $ processCommand cmd g
+    if isGameFinished g
+      then return ()
+      else do
+      cmd <- getInputCommand
+      gameLoop $ processCommand cmd g
 
 main =
   do
