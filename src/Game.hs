@@ -36,11 +36,11 @@ data Game = Game { board :: GameBoard
 getCell :: GameBoard -> Coords -> Cell
 getCell board (x, y) = board Matrix.! (y + 1, x + 1)
 
-setCell :: GameBoard -> Coords -> Cell -> GameBoard
-setCell board (x, y) cell = Matrix.setElem cell (y + 1, x + 1) board
+setCell :: Coords -> Cell -> GameBoard -> GameBoard
+setCell (x, y) cell board = Matrix.setElem cell (y + 1, x + 1) board
 
-setNoneCell :: GameBoard -> Coords -> GameBoard
-setNoneCell board coords = setCell board coords None
+setNoneCell :: Coords -> GameBoard -> GameBoard
+setNoneCell coords board = setCell coords None board
 
 boardCoordsRange :: GameBoard -> [Coords]
 boardCoordsRange m =
@@ -80,8 +80,8 @@ moveCursorForPlayer Player2 Left  = moveCursor Left
 moveCursorForPlayer Player2 Right = moveCursor Right
 moveCursorForPlayer Player2 _     = id
 
-moveCursorInGame :: Game -> CursorMove -> Game
-moveCursorInGame game move = game { cursorPosition = moveCursorForPlayer
+moveCursorInGame :: CursorMove -> Game -> Game
+moveCursorInGame move game = game { cursorPosition = moveCursorForPlayer
                                                      (currentPlayer game)
                                                      move
                                                      (cursorPosition game) }
@@ -91,27 +91,27 @@ switchPlayer g = doSwitch $ currentPlayer g
   where doSwitch Player1 = g { currentPlayer = Player2 }
         doSwitch Player2 = g { currentPlayer = Player1 }
 
-incCurrentPlayerScore :: Game -> Int -> Game
-incCurrentPlayerScore g =
-  incPlayerScore g (currentPlayer g)
+incCurrentPlayerScore :: Int -> Game -> Game
+incCurrentPlayerScore x g =
+  incPlayerScore (currentPlayer g) x g
 
-incPlayerScore :: Game -> Player -> Int  -> Game
-incPlayerScore g Player1 x = g { player1Score = (player1Score g) + x }
-incPlayerScore g Player2 x = g { player2Score = (player2Score g) + x }
+incPlayerScore :: Player -> Int -> Game -> Game
+incPlayerScore Player1 x g = g { player1Score = (player1Score g) + x }
+incPlayerScore Player2 x g = g { player2Score = (player2Score g) + x }
 
 getCellAtCursorPosition :: Game -> Cell
 getCellAtCursorPosition g = getCell (board g) (cursorPosition g)
 
-setCellAtCursorPosition :: Game -> Cell -> Game
-setCellAtCursorPosition g c = g { board = setCell (board g) (cursorPosition g) c }
+setCellAtCursorPosition :: Cell -> Game -> Game
+setCellAtCursorPosition c g = g { board = setCell (cursorPosition g) c (board g) }
 
 setNoneCellAtCursorPosition :: Game -> Game
-setNoneCellAtCursorPosition g = setCellAtCursorPosition g None
+setNoneCellAtCursorPosition g = setCellAtCursorPosition None g
 
 takeCellValue :: Game -> Game
 takeCellValue g  =
   case getCellAtCursorPosition g of
-   Cell x -> (switchPlayer . (\g -> incCurrentPlayerScore g x) . setNoneCellAtCursorPosition) g
+   Cell x -> (switchPlayer . (\g -> incCurrentPlayerScore x g) . setNoneCellAtCursorPosition) g
    None -> g
 
 isGameFinished :: Game -> Bool
@@ -121,8 +121,8 @@ isGameFinished g = not $ playerHasAvailableMoves (currentPlayer g) g
       hasNonEmptyCells $ getCurrentCol g
     playerHasAvailableMoves Player2 g =
       hasNonEmptyCells $ getCurrentRow g
-    hasNonEmptyCells v =
-      any (not . isNoneCell) v
+    hasNonEmptyCells =
+      any (not . isNoneCell)
     getCurrentRow g =
       Matrix.getRow (succ $ snd $ cursorPosition g) (board g)
     getCurrentCol g =
