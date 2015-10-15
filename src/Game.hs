@@ -36,11 +36,11 @@ data Game = Game { board :: GameBoard
 getCell :: GameBoard -> Coords -> Cell
 getCell board (x, y) = board Matrix.! (y + 1, x + 1)
 
-setCell :: Coords -> Cell -> GameBoard -> GameBoard
-setCell (x, y) cell board = Matrix.setElem cell (y + 1, x + 1) board
+setCell ::  Cell -> Coords -> GameBoard -> GameBoard
+setCell cell (x, y) = Matrix.setElem cell (y + 1, x + 1)
 
 setNoneCell :: Coords -> GameBoard -> GameBoard
-setNoneCell coords board = setCell coords None board
+setNoneCell = setCell None
 
 boardCoordsRange :: GameBoard -> [Coords]
 boardCoordsRange m =
@@ -103,15 +103,15 @@ getCellAtCursorPosition :: Game -> Cell
 getCellAtCursorPosition g = getCell (board g) (cursorPosition g)
 
 setCellAtCursorPosition :: Cell -> Game -> Game
-setCellAtCursorPosition c g = g { board = setCell (cursorPosition g) c (board g) }
+setCellAtCursorPosition c g = g { board = setCell c (cursorPosition g) (board g) }
 
 setNoneCellAtCursorPosition :: Game -> Game
-setNoneCellAtCursorPosition g = setCellAtCursorPosition None g
+setNoneCellAtCursorPosition = setCellAtCursorPosition None
 
 takeCellValue :: Game -> Game
 takeCellValue g  =
   case getCellAtCursorPosition g of
-   Cell x -> (switchPlayer . (\g -> incCurrentPlayerScore x g) . setNoneCellAtCursorPosition) g
+   Cell x -> (switchPlayer . (incCurrentPlayerScore x) . setNoneCellAtCursorPosition) g
    None -> g
 
 isGameFinished :: Game -> Bool
