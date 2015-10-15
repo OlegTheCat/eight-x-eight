@@ -24,8 +24,3 @@ main =
     hSetEcho stdout False
     g <- createGame
     gameLoop g
-    -- renderGame pureGame
-    -- putStrLn "========================="
-    -- print $ show pureGame
-    -- g <- createGame
-    -- renderGame g
